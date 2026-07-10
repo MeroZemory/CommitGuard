@@ -1,0 +1,18 @@
+name: macOS watchdog
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ShellCheck
+        run: brew install shellcheck
+      - name: Validate zsh syntax
+        run: zsh -n commit-guard-macos.sh install-macos.sh uninstall-macos.sh
+      - name: Run ShellCheck
+        run: shellcheck -s bash commit-guard-macos.sh install-macos.sh uninstall-macos.sh
