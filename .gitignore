@@ -1,1 +1,4 @@
 commit-guard.log
+commit-guard-macos.log
+commit-guard-macos.launchd.out.log
+commit-guard-macos.launchd.err.log

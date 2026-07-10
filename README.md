@@ -2,7 +2,7 @@
 
 A tiny Windows watchdog that catches **commit-memory (virtual memory) leaks before they freeze your desktop** — the kind of problem Task Manager's RAM % never shows you.
 
-Pure PowerShell 5.1, zero dependencies, no admin rights required.
+Windows PowerShell 5.1 and macOS zsh implementations, zero dependencies, no admin rights required.
 
 ## The problem it solves
 
@@ -28,7 +28,7 @@ Every 30 seconds it checks:
 - A mutex guarantees only one instance runs.
 - Activity is logged to `commit-guard.log` (hourly heartbeat, auto-rotates at 1 MB).
 
-## Install
+## Install on Windows
 
 ```powershell
 git clone https://github.com/MeroZemory/CommitGuard.git
@@ -51,6 +51,51 @@ powershell -NoProfile -ExecutionPolicy Bypass -File uninstall.ps1
 ```
 
 Removes the autostart entry and stops the running watchdog. Delete the folder afterwards if you like.
+
+## Install on macOS
+
+macOS does not expose a Windows-style system commit limit. The macOS watchdog
+therefore watches the OS-reported free-memory percentage and per-process RSS
+(resident memory), and sends Notification Center alerts when pressure is high.
+
+```zsh
+git clone https://github.com/MeroZemory/CommitGuard.git
+cd CommitGuard
+./install-macos.sh
+```
+
+It registers a per-user LaunchAgent, so no administrator password is required.
+Verify the Notification Center integration with:
+
+```zsh
+./commit-guard-macos.sh --test-notification
+```
+
+Run one non-persistent health check (useful for verification) with:
+
+```zsh
+./commit-guard-macos.sh --once
+```
+
+To remove autostart without deleting the checkout or logs:
+
+```zsh
+./uninstall-macos.sh
+```
+
+macOS tuning options:
+
+```zsh
+./commit-guard-macos.sh --free-pct-warn 25 --free-pct-critical 12 --proc-rss-gb 6 --interval 15
+```
+
+| Option | Default | Meaning |
+|---|---:|---|
+| `--free-pct-warn` | 20 | Alert when system free memory reaches this percentage or below |
+| `--free-pct-critical` | 10 | Critical alert threshold for free memory |
+| `--proc-rss-gb` | 8 | Per-process resident-memory threshold |
+| `--interval` | 30 | Seconds between checks |
+| `--cooldown-min` | 15 | Minutes between repeated alerts |
 
 ## Tuning
 
