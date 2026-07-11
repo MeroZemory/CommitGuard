@@ -23,7 +23,12 @@ cat > "$PLIST" <<EOF
 </dict></plist>
 EOF
 
-launchctl bootout "gui/$uid/$LABEL" 2>/dev/null || true
-launchctl bootstrap "gui/$uid" "$PLIST"
+if launchctl print "gui/$uid/$LABEL" >/dev/null 2>&1; then
+  # Keep the registered agent and restart it in place. This avoids a launchd
+  # race where bootout followed immediately by bootstrap returns I/O error.
+  launchctl kickstart -k "gui/$uid/$LABEL"
+else
+  launchctl bootstrap "gui/$uid" "$PLIST"
+fi
 print "CommitGuard started as $LABEL"
 print "Test notifications: $WATCHDOG --test-notification"
