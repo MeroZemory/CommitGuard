@@ -60,10 +60,16 @@ if $TEST_NOTIFICATION; then
 fi
 
 if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-  print "CommitGuard is already running."
-  exit 0
+  lock_pid="$(cat "$LOCK_DIR/pid" 2>/dev/null || true)"
+  if [[ "$lock_pid" =~ ^[0-9]+$ ]] && kill -0 "$lock_pid" 2>/dev/null; then
+    print "CommitGuard is already running."
+    exit 0
+  fi
+  rm -rf "$LOCK_DIR"
+  mkdir "$LOCK_DIR" || { print -u2 "Unable to acquire CommitGuard lock."; exit 1; }
 fi
-trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT INT TERM
+print -r -- "$$" > "$LOCK_DIR/pid"
+trap 'rm -rf "$LOCK_DIR"' EXIT INT TERM
 
 should_alert() {
   local key="$1"
